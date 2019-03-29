@@ -241,10 +241,20 @@ func (e *encoder) slicev(tag string, in reflect.Value) {
 	e.emit()
 	n := in.Len()
 	for i := 0; i < n; i++ {
-		e.marshal("", in.Index(i))
+		e.marshalSliceItem(tag, in, i, n)
 	}
 	e.must(yaml_sequence_end_event_initialize(&e.event))
 	e.emit()
+}
+
+func (e *encoder) marshalSliceItem(tag string, in reflect.Value, i int, len int) {
+	defer func() {
+		if r := recover(); r != nil {
+			panic(fmt.Sprintf("yaml: slice index out of range in tag %s at index %d of len %d", tag, i, len))
+		}
+	}()
+
+	e.marshal("", in.Index(i))
 }
 
 // isBase60 returns whether s is in base 60 notation as defined in YAML 1.1.
